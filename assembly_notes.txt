@@ -1,4 +1,3 @@
-
 #### Why RCX / R11 is modified after SysCall ####
 https://stackoverflow.com/questions/47983371/why-do-x86-64-linux-system-calls-modify-rcx-and-what-does-the-value-mean
 It's not a coincidence that RCX=RIP and R11=RFLAGS after the kernel returns to your user-space code.
