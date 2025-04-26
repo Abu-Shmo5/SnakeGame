@@ -1,3 +1,13 @@
+putc:
+    push rcx
+    mov rdx, 1
+    mov rsi, rdi
+    mov rdi, 1
+    mov rax, 1
+    syscall
+    pop rcx
+    ret
+
 ; Static Input
 ; rdi = db address
 ; Output
