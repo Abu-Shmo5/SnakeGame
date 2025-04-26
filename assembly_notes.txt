@@ -1,0 +1,9 @@
+
+#### Why RCX / R11 is modified after SysCall ####
+https://stackoverflow.com/questions/47983371/why-do-x86-64-linux-system-calls-modify-rcx-and-what-does-the-value-mean
+It's not a coincidence that RCX=RIP and R11=RFLAGS after the kernel returns to your user-space code.
+The only way for this not to be the case is if a ptrace system call modified the process's saved rcx or r11 value while it was inside the kernel.
+(ptrace is the system call gdb uses). In that case, Linux would use iret instead of sysret to return to user space, because the slower general-case iret can do that. 
+(See What happens if you use the 32-bit int 0x80 Linux ABI in 64-bit code? for some walk-through of Linux's system-call entry points. 
+Mostly the entry points from 32-bit processes, not from syscall in a 64-bit process, though.)
+
