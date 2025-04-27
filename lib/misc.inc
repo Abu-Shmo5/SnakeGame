@@ -4,13 +4,15 @@ macro exit code {
     syscall
 }
 
-macro set_cursor row, column, column_address, row_address, pos {
+macro set_cursor column, row, column_address, row_address, pos {
+    xor ax, ax
     mov rdi, row_address
-    mov ax, row
+    mov al, [row]
     call eight_bit_to_str 
 
+    xor ax, ax
     mov rdi, column_address
-    mov ax, column
+    mov al, [column]
     call eight_bit_to_str 
 
     mov rdi, row_address
