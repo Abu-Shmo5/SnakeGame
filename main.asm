@@ -12,6 +12,14 @@ include 'lib/convert.inc'
 ; TODO: Keyboard interrupt end game
 
 main:
+    call termios_save_and_disable_echo
+    mov rax, 13
+    mov rdi, 2
+    lea rsi, [sigact]
+    mov r10, 8
+    xor rdx, rdx
+    syscall
+
     call draw_map
 
     lea rdi, [newline]
@@ -51,6 +59,7 @@ update:
     lea rdi, [newline]
     call putc
 _end:
+    call termios_restore
     exit 0
 
 _gameover:
@@ -180,9 +189,55 @@ _bottom:
     loop _bottom
     ret
 
+ctrl_c_handler:
+    lea rdi, [end_pos]
+    call print
+
+    lea rdi, [exiting_game_message]
+    call print
+
+    jmp _end
+
+restorer:
+    mov rax, 15
+    syscall
+termios_save_and_disable_echo:
+        ; TCGETS -> oldios
+        mov     rax, 16
+        xor     rdi,rdi
+        mov     rsi,0x5401
+        lea     rdx,[oldios]
+        syscall
+        ; copy oldios → newios
+        mov     rcx,60/8
+        lea     rsi,[oldios]
+        lea     rdi,[newios]
+.rep:   lodsq
+        stosq
+        loop    .rep
+        ; clear ECHO & ICANON
+        and     dword [newios+0x0c], not (0000010o or 0000002o)
+        ; TCSETS newios
+        mov     rax, 16
+        xor     rdi,rdi
+        mov     rsi,0x5402
+        lea     rdx,[newios]
+        syscall
+        ret
+
+termios_restore:
+        mov     rax,16
+        xor     rdi,rdi
+        mov     rsi,0x5402
+        lea     rdx,[oldios]
+        syscall
+        ret
+
+
 segment readable writable
 
-gameover_message  db 'Gameover!!', 10, 0
+gameover_message db 'Gameover!!', 10, 0
+exiting_game_message db 'End game, Bye!!', 10, 0
 wall db '#'
 player db '+'
 newline db 10
@@ -204,3 +259,6 @@ down_wall_y db 34
 ; move_side 3 == left
 ; move_side 4 == bottom
 move_side db 4
+oldios      rb  60
+newios      rb  60
+sigact dq ctrl_c_handler, 0x04000000, restorer, 0
