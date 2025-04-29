@@ -42,7 +42,7 @@ update:
 
     call check_wall
     cmp rax, 1
-    je _gameover
+    je gameover
     
     lea rdi, [player_pos]
     call print
@@ -58,119 +58,119 @@ update:
 
     lea rdi, [newline]
     call putc
-_end:
+game_end:
     call termios_restore
     exit 0
 
-_gameover:
+gameover:
     lea rdi, [end_pos]
     call print
 
     lea rdi, [gameover_message]
     call print
-    jmp _end
+    jmp game_end
 
 move_pos:
     cmp [move_side], 1
-    je _move_up
+    je .move_up
     cmp [move_side], 2
-    je _move_right
+    je .move_right
     cmp [move_side], 3
-    je _move_left
+    je .move_left
     cmp [move_side], 4
-    je _move_bottom
+    je .move_bottom
 
-_move_up:
+.move_up:
     mov dl, [y]
     dec dl
     mov [y], dl
-    jmp _ret
-_move_right:
+    jmp .ret
+.move_right:
     mov dl, [x]
     inc dl
     mov [x], dl
-    jmp _ret
-_move_left:
+    jmp .ret
+.move_left:
     mov dl, [x]
     dec dl
     mov [x], dl
-    jmp _ret
-_move_bottom:
+    jmp .ret
+.move_bottom:
     mov dl, [y]
     inc dl
     mov [y], dl
-_ret:
+.ret:
     ret
 
 check_wall:
     cmp [move_side], 1
-    je _check_top_wall
+    je .check_top_wall
     cmp [move_side], 2
-    je _check_right_wall
+    je .check_right_wall
     cmp [move_side], 3
-    je _check_left_wall
+    je .check_left_wall
     cmp [move_side], 4
-    je _check_bottom_wall
-    jmp _back
+    je .check_bottom_wall
+    jmp .ret
 
 
-_check_top_wall:
+.check_top_wall:
     mov al, [y]
     dec al
     cmp al, [up_wall_y]
-    jg _back
+    jg .ret
     mov rax, 1
-    jmp _back
+    jmp .ret
 
-_check_right_wall:
+.check_right_wall:
     mov al, [x]
     inc al
     cmp al, [right_wall_x]
-    jb _back
+    jb .ret
     mov rax, 1
-    jmp _back
+    jmp .ret
 
-_check_left_wall:
+.check_left_wall:
     mov al, [x]
     dec al
     cmp al, [left_wall_x]
-    jg _back
+    jg .ret
     mov rax, 1
-    jmp _back
+    jmp .ret
 
-_check_bottom_wall:
+.check_bottom_wall:
     mov al, [y]
     inc al
     cmp al, [down_wall_y]
-    jb _back
+    jb .ret
     mov rax, 1
 
-_back:
+.ret:
     ret
 
 draw_map:
     mov rcx, 62
-_top:
+.top:
     lea rdi, [wall]
     call putc
-    loop _top
+    loop .top
 
     lea rdi, [newline]
     call putc 
 
 
     mov r8, 30
-_center:
+.center:
     lea rdi, [wall]
     call putc 
 
     mov r9, 60
-_spaces:
+.spaces:
     lea rdi, [space]
     call putc 
     dec r9
     cmp r9, 0
-    jnz _spaces
+    jnz .spaces
 
     lea rdi, [wall]
     call putc
@@ -180,13 +180,13 @@ _spaces:
 
     dec r8
     cmp r8, 0
-    jnz _center
+    jnz .center
 
     mov rcx, 62
-_bottom:
+.bottom:
     lea rdi, [wall]
     call putc
-    loop _bottom
+    loop .bottom
     ret
 
 ctrl_c_handler:
@@ -196,7 +196,7 @@ ctrl_c_handler:
     lea rdi, [exiting_game_message]
     call print
 
-    jmp _end
+    jmp game_end
 
 restorer:
     mov rax, 15
