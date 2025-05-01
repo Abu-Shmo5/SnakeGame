@@ -40,3 +40,32 @@ print:
     mov   rax, 1
     syscall
     ret
+
+; Static Input
+; rdi = db address
+readc:
+    mov rax, 0
+    mov rsi, rdi
+    mov rdi, 0
+    mov rdx, 1
+    syscall
+    ret
+
+; Static Input
+; rdi = db address
+keep_readc:
+    ;  until 0
+.keep_reading:
+    mov rax, 0
+    mov rsi, rdi
+    mov rdi, 0
+    mov rdx, 1
+    syscall
+
+    cmp rax, 0
+    jle .ret
+    jmp .keep_reading
+
+
+.ret:
+    ret
