@@ -12,7 +12,7 @@ include 'lib/convert.inc'
 ; TODO: Keyboard interrupt end game
 
 main:
-    call termios_save_and_disable_echo
+    call termios_save_and_disable_echo_and_non_blocking
     mov rax, 13
     mov rdi, 2
     lea rsi, [sigact]
@@ -39,6 +39,10 @@ update:
     mov rdi, sleeptime
     xor rsi, rsi
     syscall
+    lea rdi, [inputc]
+    call readc
+    ; call keep_readc
+    call update_move_side
 
     call check_wall
     cmp rax, 1
@@ -49,7 +53,7 @@ update:
 
     lea rdi, [space]
     call putc
-    
+
     call move_pos
     jmp update
 
@@ -101,7 +105,54 @@ move_pos:
     mov [y], dl
 .ret:
     ret
+update_move_side:
+    push ax
+    push rbx
+    push cx
+    mov al, [inputc]
+    ; cmp al, 'A'
+    ; je .up
+    ; cmp al, 'B'
+    ; je .down
+    ; cmp al, 'C'
+    ; je .right
+    ; cmp al, 'D'
+    ; je .left
+    ; jmp .ret
 
+    mov rbx, move_side
+    cmp al, 'w'
+    je .up
+    cmp al, 's'
+    je .down
+    cmp al, 'd'
+    je .right
+    cmp al, 'a'
+    je .left
+    jmp .ret
+    
+.up:
+    mov cl, 1
+    mov [rbx], cl
+    jmp .ret
+.down:
+    mov cl, 4
+    mov [rbx], cl
+    jmp .ret
+.right:
+    mov cl, 2
+    mov [rbx], cl
+    jmp .ret
+.left:
+    mov cl, 3
+    mov [rbx], cl
+    jmp .ret
+
+.ret:
+    pop cx
+    pop rbx
+    pop ax
+    ret
 check_wall:
     cmp [move_side], 1
     je .check_top_wall
@@ -201,7 +252,7 @@ ctrl_c_handler:
 restorer:
     mov rax, 15
     syscall
-termios_save_and_disable_echo:
+termios_save_and_disable_echo_and_non_blocking:
         ; TCGETS -> oldios
         mov     rax, 16
         xor     rdi,rdi
@@ -217,6 +268,27 @@ termios_save_and_disable_echo:
         loop    .rep
         ; clear ECHO & ICANON
         and     dword [newios+0x0c], not (0000010o or 0000002o)
+        ; ; make reads return immediately
+        mov     byte  [newios + 17 + 5], 0
+        mov     byte  [newios + 17 + 6 ], 0
+
+        ; --------  make stdin non-blocking  --------
+        ; flags = fcntl(0, F_GETFL, 0)
+        mov     eax, 72
+        xor     edi, edi         ; fd = 0 (stdin)
+        mov     esi, 3
+        xor     edx, edx
+        syscall                  ; eax = old flags
+
+        ; fcntl(0, F_SETFL, flags | O_NONBLOCK)
+        or      eax, 0x800
+        mov     r9d, eax         ; save new flags
+        mov     eax, 72
+        xor     edi, edi
+        mov     esi, 4
+        mov     edx, r9d
+        syscall
+        
         ; TCSETS newios
         mov     rax, 16
         xor     rdi,rdi
@@ -262,3 +334,4 @@ move_side db 4
 oldios      rb  60
 newios      rb  60
 sigact dq ctrl_c_handler, 0x04000000, restorer, 0
+inputc db 0
