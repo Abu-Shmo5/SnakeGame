@@ -7,13 +7,24 @@ entry main
 include 'lib/io.inc'
 include 'lib/misc.inc'
 include 'lib/convert.inc'
+include "lib/const.inc"
 
-; TODO: Colouring
-; TODO: Keyboard interrupt end game
+; TODO: Colouring (Apple txt Red; snake txt green; end game txt orange; gameover bg red)
+; TODO: Clear screen (set cursor in correct unchanging pos)
+; TODO: Pause
+; TODO: Score
+; TODO: Instructions
+; TODO: Maps (Size/Walls)
+; TODO: Challenges (Per Map / Daily) as in (Time restratin or score etc)
+; TODO: Leaderboard
+
 
 main:
+    lea rdi, [clear_terminal]
+    call print
+
     call termios_save_and_disable_echo_and_non_blocking
-    mov rax, 13
+    mov rax, SYS_rt_sigaction
     mov rdi, 2
     lea rsi, [sigact]
     mov r10, 8
@@ -35,7 +46,7 @@ update:
     lea rdi, [player]
     call putc
     
-    mov rax, 35
+    mov rax, SYS_nanosleep
     mov rdi, sleeptime
     xor rsi, rsi
     syscall
@@ -250,11 +261,11 @@ ctrl_c_handler:
     jmp game_end
 
 restorer:
-    mov rax, 15
+    mov rax, SYS_rt_sigreturn
     syscall
 termios_save_and_disable_echo_and_non_blocking:
         ; TCGETS -> oldios
-        mov     rax, 16
+        mov     rax, SYS_ioctl
         xor     rdi,rdi
         mov     rsi,0x5401
         lea     rdx,[oldios]
@@ -274,7 +285,7 @@ termios_save_and_disable_echo_and_non_blocking:
 
         ; --------  make stdin non-blocking  --------
         ; flags = fcntl(0, F_GETFL, 0)
-        mov     eax, 72
+        mov     eax, SYS_fcntl
         xor     edi, edi         ; fd = 0 (stdin)
         mov     esi, 3
         xor     edx, edx
@@ -283,14 +294,14 @@ termios_save_and_disable_echo_and_non_blocking:
         ; fcntl(0, F_SETFL, flags | O_NONBLOCK)
         or      eax, 0x800
         mov     r9d, eax         ; save new flags
-        mov     eax, 72
+        mov     eax, SYS_fcntl
         xor     edi, edi
         mov     esi, 4
         mov     edx, r9d
         syscall
         
         ; TCSETS newios
-        mov     rax, 16
+        mov     rax, SYS_ioctl
         xor     rdi,rdi
         mov     rsi,0x5402
         lea     rdx,[newios]
@@ -298,7 +309,7 @@ termios_save_and_disable_echo_and_non_blocking:
         ret
 
 termios_restore:
-        mov     rax,16
+        mov     rax, SYS_ioctl
         xor     rdi,rdi
         mov     rsi,0x5402
         lea     rdx,[oldios]
@@ -310,6 +321,7 @@ segment readable writable
 
 gameover_message db 'Gameover!!', 10, 0
 exiting_game_message db 'End game, Bye!!', 10, 0
+clear_terminal db 27,'[H', 27, '[2J', 0
 wall db '#'
 player db '+'
 newline db 10
@@ -321,11 +333,14 @@ x_pos db '00', 0
 y_pos db '00', 0
 ; player_pos db '00000000', 0
 player_pos db 27, '[00;00H', 0
-sleeptime dq 0, 500000000
+sleeptime dq 0, 62500000
+; sleeptime dq 0, 125000000
+; sleeptime dq 0, 250000000
+; sleeptime dq 0, 500000000
 left_wall_x db 1
 right_wall_x db 62
-up_wall_y db 3
-down_wall_y db 34
+up_wall_y db 1
+down_wall_y db 32
 ; move_side 1 == top
 ; move_side 2 == right
 ; move_side 3 == left
