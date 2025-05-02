@@ -1,9 +1,10 @@
+include "const.inc"
 putc:
     push rcx
     mov rdx, 1
     mov rsi, rdi
     mov rdi, 1
-    mov rax, 1
+    mov rax, SYS_write
     syscall
     pop rcx
     ret
@@ -37,14 +38,14 @@ print:
     mov   rdx, rax
     mov   rsi, rdi
     mov   rdi, 1
-    mov   rax, 1
+    mov   rax, SYS_write
     syscall
     ret
 
 ; Static Input
 ; rdi = db address
 readc:
-    mov rax, 0
+    mov rax, SYS_read
     mov rsi, rdi
     mov rdi, 0
     mov rdx, 1
@@ -56,7 +57,7 @@ readc:
 keep_readc:
     ;  until 0
 .keep_reading:
-    mov rax, 0
+    mov rax, SYS_read
     mov rsi, rdi
     mov rdi, 0
     mov rdx, 1

@@ -1,6 +1,8 @@
+include "const.inc"
+
 macro exit code {
     mov rdi, code
-    mov  rax, 60
+    mov  rax, SYS_exit
     syscall
 }
 
