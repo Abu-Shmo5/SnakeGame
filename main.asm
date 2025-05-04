@@ -38,7 +38,7 @@ main:
 
 
 update:
-    set_cursor x, y, x_pos, y_pos, player_pos
+    set_cursor int_player_position.x, int_player_position.y, x_pos, y_pos, player_pos
 
     lea rdi, [player_pos]
     call print
@@ -96,24 +96,24 @@ move_pos:
     je .move_bottom
 
 .move_up:
-    mov dl, [y]
+    mov dl, [int_player_position.y]
     dec dl
-    mov [y], dl
+    mov [int_player_position.y], dl
     jmp .ret
 .move_right:
-    mov dl, [x]
+    mov dl, [int_player_position.x]
     inc dl
-    mov [x], dl
+    mov [int_player_position.x], dl
     jmp .ret
 .move_left:
-    mov dl, [x]
+    mov dl, [int_player_position.x]
     dec dl
-    mov [x], dl
+    mov [int_player_position.x], dl
     jmp .ret
 .move_bottom:
-    mov dl, [y]
+    mov dl, [int_player_position.y]
     inc dl
-    mov [y], dl
+    mov [int_player_position.y], dl
 .ret:
     ret
 update_move_side:
@@ -177,33 +177,33 @@ check_wall:
 
 
 .check_top_wall:
-    mov al, [y]
+    mov al, [int_player_position.y]
     dec al
-    cmp al, [up_wall_y]
+    cmp al, [int_wall_position.top]
     jg .ret
     mov rax, 1
     jmp .ret
 
 .check_right_wall:
-    mov al, [x]
+    mov al, [int_player_position.x]
     inc al
-    cmp al, [right_wall_x]
+    cmp al, [int_wall_position.right]
     jb .ret
     mov rax, 1
     jmp .ret
 
 .check_left_wall:
-    mov al, [x]
+    mov al, [int_player_position.x]
     dec al
-    cmp al, [left_wall_x]
+    cmp al, [int_wall_position.left]
     jg .ret
     mov rax, 1
     jmp .ret
 
 .check_bottom_wall:
-    mov al, [y]
+    mov al, [int_player_position.y]
     inc al
-    cmp al, [down_wall_y]
+    cmp al, [int_wall_position.bottom]
     jb .ret
     mov rax, 1
 
@@ -327,20 +327,16 @@ player db '+'
 newline db 10
 space db 32
 end_pos db 27, '[40;0H', 0
-x db 20
-y db 20
+int_player_position POINT 20, 20
 x_pos db '00', 0
 y_pos db '00', 0
 ; player_pos db '00000000', 0
 player_pos db 27, '[00;00H', 0
-sleeptime dq 0, 62500000
-; sleeptime dq 0, 125000000
+; sleeptime dq 0, 62500000
+sleeptime dq 0, 125000000
 ; sleeptime dq 0, 250000000
 ; sleeptime dq 0, 500000000
-left_wall_x db 1
-right_wall_x db 62
-up_wall_y db 1
-down_wall_y db 32
+int_wall_position WALL_POINTS 1, 32, 1, 62
 ; move_side 1 == top
 ; move_side 2 == right
 ; move_side 3 == left
