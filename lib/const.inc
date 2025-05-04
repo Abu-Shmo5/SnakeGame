@@ -371,3 +371,39 @@ SYS_setregid = 114
 ; SYS_ = 
 ; SYS_ = 
 ; SYS_ = 
+
+
+struc POINT x:?, y:? {
+    .x db x
+    .y db y
+}
+
+struc WALL_POINTS top:?, bottom:?, left:?, right:? {
+    .top db top
+    .bottom db bottom
+    .left db left
+    .right db right
+}
+
+; tcflag_t = (unsigned intger / 4 bytes) * 4 = 16
+; cc_t = ?
+; speed_t = (unsigned intger / 4 bytes) * 2 = 8
+; struc TERMIOS c_iflag, c_oflag, c_cflag, c_lflag, c_cc, c_ispeed, c_ospeed {
+;     .c_iflag (tcflag_t / dd) c_iflag;      /* input modes */
+;     .c_oflag (tcflag_t / dd) c_oflag;      /* output modes */
+;     .c_cflag (tcflag_t / dd) c_cflag;      /* control modes */
+;     .c_lflag (tcflag_t / dd) c_lflag;      /* local modes */
+;     .c_cc (cc_t / 32 db) c_cc[NCCS];       /* control characters */
+;     .c_ispeed (speed_t / dd) c_ispeed;      /* input speed */
+;     .c_ospeed (speed_t / dd) c_ospeed;      /* output speed */
+; };
+
+; #include<stdio.h>
+; #include<termios.h>
+; int main() {
+;     printf("sizeof(struct termios) = %zu\n", sizeof(struct termios));
+;     printf("sizeof(tcflag_t) = %zu\n", sizeof(tcflag_t));
+;     printf("sizeof(cc_t) = %zu\n", sizeof(cc_t));
+;     printf("sizeof(speed_t) = %zu\n", sizeof(speed_t));
+;     return 0;
+; }
